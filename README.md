@@ -1,25 +1,33 @@
 # Async Python
 
+This is a short command line application built with [click](https://click.palletsprojects.com/en/8.0.x/)
+to demonstrate the concepts of asynchronous programming in Python. The application includes two
+subcommands, `http` and `queue`, which demonstrate the use of asynchronous HTTP requests and simple
+distributed task queues, respectively.
+
+## Setup
+
 Python versions are managed with [asdf](https://asdf-vm.com/) and [Poetry](https://python-poetry.org/)
 is for dependency management. A requirements.txt is included if you prefer to use pip.
 
+### `pip` Setup
+
 ```bash
-pip install poetry
+pip install -r requirements.txt
+```
+
+### `poetry` Setup
+
+```bash
 asdf install python 3.12.3
+pip install poetry
+asdf reshim
 ```
 
 ```bash
 poetry env use python3.12
 source .venv/bin/activate
 poetry install
-```
-
-```bash
-python -m cli sync
-```
-
-```bash
-python -m cli async
 ```
 
 ## Usage
