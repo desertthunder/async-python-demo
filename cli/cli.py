@@ -8,13 +8,15 @@ import time
 import click
 from rich.console import Console
 
+from cli.http import http_command
+
 console = Console()
 task_queue: queue.Queue = queue.Queue()
 
 
 @click.group()
 def cli() -> None:
-    """Main function."""
+    """Demo Command line for asynchronous programming post."""
     pass
 
 
@@ -40,29 +42,21 @@ def sync_worker() -> None:
 def sync_command(num: int) -> None:
     """Run synchronous blocking tasks."""
     start = time.time()
+    thread = threading.Thread(target=sync_worker)
 
-    num_workers = 1
-
-    threads = [threading.Thread(target=sync_worker) for _ in range(num_workers)]
-
-    for thread in threads:
-        thread.start()
+    thread.start()
 
     for i in range(num):
         task_queue.put(i)
 
     task_queue.join()
-
-    for _ in threads:
-        task_queue.put(None)
-
-    for thread in threads:
-        thread.join()
+    thread.join()
 
     end = time.time()
 
     console.print(
-        f"Blocking tasks completed in {end - start:.3f} seconds.", style="bold green"
+        f"Blocking tasks completed in {end - start:.3f} seconds.",
+        style="bold green",
     )
 
 
@@ -70,17 +64,12 @@ async def async_worker(name: str, task_queue: asyncio.Queue) -> None:
     """Asynchronous/Non-blocking worker function."""
     start = time.time()
 
-    while True:
-        task = await task_queue.get()
-        if task is None:  # Exit signal
-            break
-
+    while task := await task_queue.get():
         console.print(f"{name} processing task: {task}", style="bold red")
 
         await asyncio.sleep(1)
 
         console.print(f"{name} completed task: {task}", style="bold cyan")
-
         task_queue.task_done()
 
     end = time.time()
@@ -102,6 +91,7 @@ async def _async_queue(num: int) -> None:
 
     for _ in workers:
         await task_queue.put(None)
+
     await asyncio.gather(*workers)
 
 
@@ -112,5 +102,14 @@ def async_command(num: int) -> None:
     asyncio.run(_async_queue(num))
 
 
-cli.add_command(sync_command)
-cli.add_command(async_command)
+@click.group(name="queue")
+def queue_command() -> None:
+    """Basic task queue demo."""
+    pass
+
+
+queue_command.add_command(sync_command)
+queue_command.add_command(async_command)
+
+cli.add_command(queue_command)
+cli.add_command(http_command)
